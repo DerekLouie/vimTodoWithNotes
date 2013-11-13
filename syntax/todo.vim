@@ -16,7 +16,7 @@ call vimtodo#SetDefaultVars()
 syn match       todoProject     /+\S\+/
 syn match       todoContext     /\s@\S\+/
 syn match       todoPriority    /([A-Z])/
-"syn match       todoDone        /^\s*\[\?[xX]\]\?\s.*/
+syn match       todoDone        /^\s*\[\?[xX]\]\?\s.*/
 
 syn match       todoDate        /\w\?{[^}]\+}[+=-]\?/
 syn match       todoDate        /\d\{4\}-\d\{2\}-\d\{2\}/

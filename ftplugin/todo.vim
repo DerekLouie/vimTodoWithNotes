@@ -82,6 +82,15 @@ function! s:IsDoneState(state)
     endfor
     return 0
 endfunction
+" FOR NOTES
+" s:IsNoteState - Tests if a state is considered 'done' {{{1
+function! s:IsNoteState(state)
+    if "NOTE" == a:state
+        return 1
+    endif
+    return 0
+endfunction
+" FOR NOTES
 "1}}}
 " s:GetDoneStates - Returns a list of all done states {{{1
 function! s:GetDoneStates()
@@ -239,6 +248,7 @@ let s:PropertyVars = {
             \'LOGDONE':         'g:todo_log_done',
             \'LOGDRAWER':       'g:todo_log_into_drawer',
             \'DONEFILE':        'g:todo_done_file',
+            \'NOTEFILE':        'g:todo_note_file',
             \'STATES':          'g:todo_states',
             \'STATECOLORS':     'g:todo_state_colors',
             \'CHECKBOXSTATES':  'g:todo_checkbox_states',
@@ -313,23 +323,31 @@ setlocal foldtext=getline(v:foldstart).\"\ ...\"
 setlocal fillchars+=fold:\ 
 " 1}}}
 " Mappings {{{1
-call s:Map("cb", "InsertCheckbox")
-call s:Map("cc", "CheckboxToggle")
-call s:Map("cv", "PromptTaskState")
-call s:Map("cs", "NextTaskState")
-call s:Map("ct", "LoadTaskLink")
-call s:Map("cl", "LoadLink")
-call s:Map("ca", "ArchiveDone")
-call s:Map("ce", "UpdateTimeTotal")
+call s:Map("tb", "InsertCheckbox")
+call s:Map("tct", "CheckboxToggle")
+call s:Map("tp", "PromptTaskState")
+call s:Map("tns", "NextTaskState")
+call s:Map("tlt", "LoadTaskLink")
+call s:Map("tl", "LoadLink")
+call s:Map("tad", "ArchiveDone")
+call s:Map("tan", "ArchiveNotes")
+call s:Map("ttt", "UpdateTimeTotal")
 "1}}}
 
 " Todo entry macros
 " ds - Datestamp {{{1
 iab ds <C-R>=strftime("%Y-%m-%d")<CR>
-" cn, \cn - New todo entry {{{1
-exe 'map <LocalLeader>cn o<Esc>0Di'.vimtodo#TodoParseTaskState(
+" tt, \tt - New todo entry {{{1
+exe 'map <LocalLeader>tt o<Esc>0Di'.vimtodo#TodoParseTaskState(
             \g:todo_states[0][0])["state"].' ds '
-exe 'iab cn '.vimtodo#TodoParseTaskState(g:todo_states[0][0])["state"].
+exe 'iab tt '.vimtodo#TodoParseTaskState(g:todo_states[0][0])["state"].
+            \' <C-R>=strftime("%Y-%m-%d")<CR>'
+"1}}}
+" NOTE entry macros
+" tn, \tn - New note entry {{{1
+exe 'map <LocalLeader>tn o<Esc>0Di'.vimtodo#TodoParseTaskState(
+            \g:todo_states[0][1])["state"].' ds '
+exe 'iab tn '.vimtodo#TodoParseTaskState(g:todo_states[0][1])["state"].
             \' <C-R>=strftime("%Y-%m-%d")<CR>'
 "1}}}
 
@@ -671,6 +689,50 @@ function! s:ArchiveTask(startline, endline)
     exe a:startline.",".a:endline."d"
 endfunction
 " 1}}}
+
+
+" THIS IS MY CODE TO CLEAR NOTES
+" Task reorganizing
+" s:ArchiveDone {{{1
+function! s:ArchiveNotes()
+    let line=0
+    let startline=-1 " Start line of a task
+    let topstate="" " The state for the toplevel task
+    while line < line('$')
+        let line = line+1
+        let [state, idx] = s:GetState(line)
+        if idx == 0 " Start of a new task
+            " Archive the old task if it is relevant
+            if startline != -1 && s:IsNoteState(topstate)
+                " We removed a chunk of text, set our line number correctly
+                call s:ArchiveTaskNote(startline, line - 1)
+                let line=startline
+            endif
+            " Set the state for the new task
+            let topstate=state
+            let startline=line
+        endif
+    endwhile
+    " Deal with the last task
+    if startline != -1 && s:IsNoteState(topstate)
+        call s:ArchiveTaskNote(startline, line)
+    endif
+endfunction
+" 1}}}
+" s:ArchiveTask - Archives a range of lines {{{1
+function! s:ArchiveTaskNote(startline, endline)
+    if match(g:todo_note_file, '/') == 0 || match(g:todo_note_file, '\~') == 0
+        " Absolute path, don't add the current dir
+        let filename=g:todo_note_file
+    else
+        " Non-absolute path
+        let filename=fnamemodify(expand("%"),":p:h")."/".g:todo_note_file
+    endif
+    exe "echo 'TESTING' w! >>".filename
+    exe a:startline.",".a:endline."w! >>".filename
+endfunction
+" 1}}}
+" THIS IS MY CODE TO CLEAR NOTES
 
 " Automatically filled in fields
 " s:UpdateTimeTotal {{{1

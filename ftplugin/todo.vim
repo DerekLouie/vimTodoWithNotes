@@ -60,6 +60,9 @@ function! s:GetState(line)
     let regex="\\(^\\s*\\)\\@<=[A-Z]\\+\\(\\s\\|$\\)\\@="
     let idx=match(line, regex)
     let state=matchstr(line, regex)
+    " echo line
+    " echo idx
+    " echo state
     return [state, idx]
 endfunction
 "1}}}
@@ -695,27 +698,65 @@ endfunction
 " Task reorganizing
 " s:ArchiveDone {{{1
 function! s:ArchiveNotes()
+    let idx=0
     let line=0
     let startline=-1 " Start line of a task
     let topstate="" " The state for the toplevel task
+    let titled= 0
+    " let breakpoint = 0
     while line < line('$')
+        " echo "idx: ".idx
+        " echo "line: ".line
+        " echo "end: ".line('$')
+        " echo "breakpoint: ".startline
+        " echo "the state: ".topstate
+        " if breakpoint == 13
+            " break
+        " endif
+        " echo "1"
+        " let breakpoint = breakpoint+1
+        " echo "2"
         let line = line+1
+        " echo "line after increment: ".line
         let [state, idx] = s:GetState(line)
+        " echo "3"
         if idx == 0 " Start of a new task
+            " echo "4"
             " Archive the old task if it is relevant
-            if startline != -1 && s:IsNoteState(topstate)
+            if (startline != -1 && s:IsNoteState(topstate))
+                if (titled == 0)
+                    if match(g:todo_note_file, '/') == 0 || match(g:todo_note_file, '\~') == 0
+                        " Absolute path, don't add the current dir
+                        let filename=g:todo_note_file
+                    else
+                        " Non-absolute path
+                        let filename=fnamemodify(expand("%"),":p:h")."/".g:todo_note_file
+                    endif
+                    silent exe "redir >> ".filename." | echon '===".strftime("%Y-%m-%d")."===\n\n' | redir END"
+                    let titled = 1
+                endif
+                " echo "5"
                 " We removed a chunk of text, set our line number correctly
-                call s:ArchiveTaskNote(startline, line - 1)
-                let line=startline
+                call s:ArchiveTaskNote(startline, line-1)
+                let offset = (line-1) - startline + 1
+                " echo "6"
+                let line=startline+offset
+                " echo "7"
             endif
             " Set the state for the new task
+                " echo "8"
             let topstate=state
+                " echo "9"
             let startline=line
+                " echo "10"
         endif
     endwhile
     " Deal with the last task
     if startline != -1 && s:IsNoteState(topstate)
         call s:ArchiveTaskNote(startline, line)
+    endif
+    if (titled == 1)
+        silent exe "redir >> ".filename." | echon '\n' | redir END"
     endif
 endfunction
 " 1}}}
@@ -728,7 +769,6 @@ function! s:ArchiveTaskNote(startline, endline)
         " Non-absolute path
         let filename=fnamemodify(expand("%"),":p:h")."/".g:todo_note_file
     endif
-    exe "echo 'TESTING' w! >>".filename
     exe a:startline.",".a:endline."w! >>".filename
 endfunction
 " 1}}}

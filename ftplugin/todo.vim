@@ -635,9 +635,9 @@ command -buffer Tomorrow :call s:ShowDueTasks(1,1)
 command -buffer Week :call s:ShowDueTasks(0,7)
 command -buffer Overdue :call s:ShowDueTasks(-365,-1)
 
-if !hasmapto(':Today')
-    map <buffer> <unique> <LocalLeader>cd :Today<CR>
-endif
+"if !hasmapto(':Today')
+"    imap <buffer> <unique> <LocalLeader>cd :Today<CR>
+"endif
 if !hasmapto(':Tomorrow')
     map <buffer> <unique> <LocalLeader>cf :Tomorrow<CR>
 endif

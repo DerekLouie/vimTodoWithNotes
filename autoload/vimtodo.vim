@@ -23,7 +23,7 @@ endfunction
 " Default variables {{{1
 function! vimtodo#SetDefaultVars()
     call vimtodo#Set("g:todo_states",
-        \[["TODO(t)", "NOTE(n)", "|", "DONE(d)", "CANCELLED(c)"],
+        \[["NOTE(n)", "TODO(t)", "|", "DONE(d)", "CANCELLED(c)"],
         \["WAITING(w)", "CLOSED(l)"]])
     call vimtodo#Set("g:todo_state_colors", { "TODO" : "Blue", "DONE": "Green",
         \ "CANCELLED" : "Red", "WAITING": "Yellow", "CLOSED": "Grey" })

@@ -19,7 +19,7 @@ function! vimtodo#Set(varname, value)
     endif
 endfunction
 "1}}}
-
+" Starts at note now
 " Default variables {{{1
 function! vimtodo#SetDefaultVars()
     call vimtodo#Set("g:todo_states",

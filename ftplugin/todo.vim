@@ -863,7 +863,21 @@ endfunction
 " s:ArchiveTask - Archives a range of lines {{{1
 function! s:PutAtBottomTaskNote(startline, endline)
     " TODO: Change this line to copy lines and put them at the bottom of the file
-    silent exe a:startline.",".a:endline."d|$pu"
+    let cornercase = 0
+    let start = a:startline
+    while start <= a:endline
+        if getline(start) == "NOTES:"
+            let start = start - 1
+            let cornercase = 1
+            break
+        else
+            let start = start + 1
+        endif
+    endwhile
+    if cornercase == 0
+        let start = start - 1
+    endif
+    silent exe a:startline.",".start."d|$pu"
 endfunction
 " 1}}}
 " Command definition

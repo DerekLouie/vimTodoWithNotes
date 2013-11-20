@@ -326,7 +326,7 @@ setlocal foldtext=getline(v:foldstart).\"\ ...\"
 setlocal fillchars+=fold:\ 
 " 1}}}
 " Mappings {{{1
-call s:Map("tbb", "InsertCheckbox")
+call s:Map("tb", "InsertCheckbox")
 call s:Map("tct", "CheckboxToggle")
 call s:Map("tp", "PromptTaskState")
 call s:Map("tns", "NextTaskState")

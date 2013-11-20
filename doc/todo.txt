@@ -12,11 +12,12 @@ CUSTOM KEY BINDINGS
 <localleader>tct  : CheckboxToggle  
 <localleader>tp   : PromptTaskState 
 <localleader>tns  : NextTaskState   
-<localleader>tlt  : LoadTaskLink    
+<localleader>tll  : LoadTaskLink    
 <localleader>tl   : LoadLink        
 <localleader>tad  : ArchiveDone     
 <localleader>tan  : ArchiveNotes    
-<localleader>ttt  : UpdateTimeTotal 
+<localleader>tt   : UpdateTimeTotal 
+<localleader>tmn  : MoveNotes
 
 ==============================================================================
 ABOUT                                                   *vimtodo-about*

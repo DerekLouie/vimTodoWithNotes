@@ -688,6 +688,7 @@ function! s:ArchiveTask(startline, endline)
         " Non-absolute path
         let filename=fnamemodify(expand("%"),":p:h")."/".g:todo_done_file
     endif
+    silent exe "redir >> ".filename." | echon '===".strftime("%Y-%m-%d")."===\n\n' | redir END"
     exe a:startline.",".a:endline."w! >>".filename
     exe a:startline.",".a:endline."d"
 endfunction

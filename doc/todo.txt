@@ -4,6 +4,21 @@ Vim todo list plugin                                            *vimtodo*
 
 Plugin for managing hierarchical to do lists in vim.
 
+
+==============================================================================
+CUSTOM KEY BINDINGS
+
+<localleader>tb   : InsertCheckbox  
+<localleader>tct  : CheckboxToggle  
+<localleader>tp   : PromptTaskState 
+<localleader>tns  : NextTaskState   
+<localleader>tll  : LoadTaskLink    
+<localleader>tl   : LoadLink        
+<localleader>tad  : ArchiveDone     
+<localleader>tan  : ArchiveNotes    
+<localleader>tt   : UpdateTimeTotal 
+<localleader>tmn  : MoveNotes
+
 ==============================================================================
 ABOUT                                                   *vimtodo-about*
 

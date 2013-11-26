@@ -330,11 +330,14 @@ call s:Map("tb", "InsertCheckbox")
 call s:Map("tct", "CheckboxToggle")
 call s:Map("tp", "PromptTaskState")
 call s:Map("tns", "NextTaskState")
-call s:Map("tlt", "LoadTaskLink")
+" untested
+call s:Map("tll", "LoadTaskLink")
+" untested
 call s:Map("tl", "LoadLink")
 call s:Map("tad", "ArchiveDone")
 call s:Map("tan", "ArchiveNotes")
-call s:Map("ttt", "UpdateTimeTotal")
+call s:Map("tt", "UpdateTimeTotal")
+call s:Map("tmn", "MoveNotes")
 "1}}}
 
 " Todo entry macros
@@ -343,14 +346,14 @@ iab ds <C-R>=strftime("%Y-%m-%d")<CR>
 " tt, \tt - New todo entry {{{1
 exe 'map <LocalLeader>tt o<Esc>0Di'.vimtodo#TodoParseTaskState(
             \g:todo_states[0][0])["state"].' ds '
-exe 'iab tt '.vimtodo#TodoParseTaskState(g:todo_states[0][0])["state"].
+exe 'iab tt '.vimtodo#TodoParseTaskState(g:todo_states[0][1])["state"].
             \' <C-R>=strftime("%Y-%m-%d")<CR>'
 "1}}}
 " NOTE entry macros
 " tn, \tn - New note entry {{{1
 exe 'map <LocalLeader>tn o<Esc>0Di'.vimtodo#TodoParseTaskState(
             \g:todo_states[0][1])["state"].' ds '
-exe 'iab tn '.vimtodo#TodoParseTaskState(g:todo_states[0][1])["state"].
+exe 'iab tn '.vimtodo#TodoParseTaskState(g:todo_states[0][0])["state"].
             \' <C-R>=strftime("%Y-%m-%d")<CR>'
 "1}}}
 
@@ -464,6 +467,7 @@ function! s:SelectTaskState(state, oldstate, idx)
 endfunction
 "1}}}
 " s:SetTaskState {{{1
+" TODO: EDIT THIS NOT TO LOG WHEN IT GOES FROM / TO NOTE STATE
 function! s:SetTaskState(state, oldstate, idx)
     let line = getline(".")
     if a:idx > 0
@@ -473,25 +477,29 @@ function! s:SetTaskState(state, oldstate, idx)
     else
         let parts=["",line[len(a:oldstate):]]
     endif
-    if a:state != ""
-        call setline(".", join(parts, a:state))
-    else
-        " Remove the state
-        call setline(".", join(parts, "")[1:])
-    endif
-    " Logging code
-    " Log all states
-    if g:todo_log_into_drawer != ""
-        let log=a:state
-        if log != "" " Don't log removing a state
-            let drawerline = s:FindOrMakeDrawer(g:todo_log_into_drawer,
-                \line("."))
-            call append(drawerline,
-                        \ matchstr(getline(drawerline), "^\\s\\+").
-                        \repeat(" ", &shiftwidth).
-                        \log.": ".strftime("%Y-%m-%d %H:%M:%S"))
+        if a:state != ""
+            call setline(".", join(parts, a:state))
+        else
+            " Remove the state
+            call setline(".", join(parts, "")[1:])
         endif
-    endif
+        " Logging code
+        " Log all states
+        if a:state == "NOTE"
+            let avoided="avoided"
+        else
+            if g:todo_log_into_drawer != ""
+                let log=a:state
+                if log != "" " Don't log removing a state
+                    let drawerline = s:FindOrMakeDrawer(g:todo_log_into_drawer,
+                                \line("."))
+                    call append(drawerline,
+                                \ matchstr(getline(drawerline), "^\\s\\+").
+                                \repeat(" ", &shiftwidth).
+                                \log.": ".strftime("%Y-%m-%d %H:%M:%S"))
+                endif
+            endif
+        endif
     " Logging done time
     if g:todo_log_done == 1
         let nextline = line(".") + 1
@@ -803,6 +811,76 @@ function! s:UpdateTimeTotal()
             \printf("%.2f", totaltimes[drawer]))
     endfor
 endfunction
+
+
+" THIS IS MY CODE TO MOVE NOTES
+"
+" Task reorganizing
+function! s:MoveNotes()
+    let idx=0
+    let line=0
+    let startline=-1 " Start line of a task
+    let topstate="" " The state for the toplevel task
+    " let breakpoint = 0
+    while line < line('$')
+        "Stop moving notes under the line that has this phrase
+        if getline(line) == "NOTES:"
+            break
+        endif
+        " echo "idx: ".idx
+        " echo "line: ".line
+        " echo "end: ".line('$')
+        " echo "breakpoint: ".startline
+        " echo "the state: ".topstate
+        " if breakpoint == 13
+            " break
+        " endif
+        " echo "1"
+        " let breakpoint = breakpoint+1
+        " echo "2"
+        let line = line+1
+        " echo "line after increment: ".line
+        let [state, idx] = s:GetState(line)
+        " echo "3"
+        if idx == 0 " Start of a new task
+            " echo "4"
+            " Archive the old task if it is relevant
+            if (startline != -1 && s:IsNoteState(topstate))
+                " We removed a chunk of text, set our line number correctly
+                call s:PutAtBottomTaskNote(startline, line-1)
+                let offset = (line-1) - startline + 1
+                let line=startline
+            endif
+            " Set the state for the new task
+            let topstate=state
+            let startline=line
+        endif
+    endwhile
+    " Deal with the last task
+    if startline != -1 && s:IsNoteState(topstate)
+        call s:PutAtBottomTaskNote(startline, line)
+    endif
+endfunction
+" s:ArchiveTask - Archives a range of lines {{{1
+function! s:PutAtBottomTaskNote(startline, endline)
+    " TODO: Change this line to copy lines and put them at the bottom of the file
+    let cornercase = 0
+    let start = a:startline
+    while start <= a:endline
+        if getline(start) == "NOTES:"
+            let start = start - 1
+            let cornercase = 1
+            break
+        else
+            let start = start + 1
+        endif
+    endwhile
+    if cornercase == 0
+        let start = start - 1
+    endif
+    silent exe a:startline.",".start."d|$pu"
+endfunction
+" 1}}}
 " Command definition
 command -buffer UpdateTimeTotal :call s:UpdateTimeTotal()
 " 1}}}

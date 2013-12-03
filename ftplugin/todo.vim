@@ -1,4 +1,4 @@
-" Vim filetype plugin for heirarchical TODO lists
+" Vim filetype plugin for heirarchical TODO lists"{{{
 " Maintainer:   Mark Harrison <mark@mivok.net>
 " Last Change:  Nov 27, 2010
 " License:      ISC - See LICENSE file for details
@@ -666,12 +666,24 @@ function! s:ArchiveDone()
     let line=0
     let startline=-1 " Start line of a task
     let topstate="" " The state for the toplevel task
+    let titled= 0
     while line < line('$')
         let line = line+1
         let [state, idx] = s:GetState(line)
         if idx == 0 " Start of a new task
             " Archive the old task if it is relevant
             if startline != -1 && s:IsDoneState(topstate)
+                if (titled == 0)
+                    if match(g:todo_done_file, '/') == 0 || match(g:todo_done_file, '\~') == 0
+                        " Absolute path, don't add the current dir
+                        let filename=g:todo_done_file
+                    else
+                        " Non-absolute path
+                        let filename=fnamemodify(expand("%"),":p:h")."/".g:todo_done_file
+                    endif
+                    silent exe "redir >> ".filename." | echon '\n\n===".strftime("%Y-%m-%d")."===\n\n' | redir END"
+                    let titled = 1
+                endif
                 " We removed a chunk of text, set our line number correctly
                 call s:ArchiveTask(startline, line - 1)
                 let line=startline
@@ -696,7 +708,7 @@ function! s:ArchiveTask(startline, endline)
         " Non-absolute path
         let filename=fnamemodify(expand("%"),":p:h")."/".g:todo_done_file
     endif
-    silent exe "redir >> ".filename." | echon '\n===".strftime("%Y-%m-%d")."===\n\n' | redir END"
+    silent exe "redir >> ".filename." | echon '\n' | redir END"
     exe a:startline.",".a:endline."w! >>".filename
     exe a:startline.",".a:endline."d"
 endfunction
@@ -888,4 +900,4 @@ command -buffer UpdateTimeTotal :call s:UpdateTimeTotal()
 " Restore the old compatible mode setting {{{1
 let &cpo = s:save_cpo
 "1}}}
-" vim:foldmethod=marker
+" vim:foldmethod=marker"}}}

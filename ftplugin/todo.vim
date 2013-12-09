@@ -336,7 +336,7 @@ call s:Map("tll", "LoadTaskLink")
 call s:Map("tl", "LoadLink")
 call s:Map("tad", "ArchiveDone")
 call s:Map("tan", "ArchiveNotes")
-call s:Map("tt", "UpdateTimeTotal")
+call s:Map("ut", "UpdateTimeTotal")
 call s:Map("tmn", "MoveNotes")
 "1}}}
 

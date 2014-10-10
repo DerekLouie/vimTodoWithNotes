@@ -347,7 +347,7 @@ iab ds <C-R>=strftime("%Y-%m-%d")<CR>
 exe 'map <LocalLeader>tt o<Esc>0Di'.vimtodo#TodoParseTaskState(
             \g:todo_states[0][0])["state"].' ds '
 exe 'iab tt '.vimtodo#TodoParseTaskState(g:todo_states[0][1])["state"].
-            \' <C-R>=strftime("%Y-%m-%d")<CR>'
+            \' <C-R>=strftime("%Y-%m-%d")<CR><CR><TAB>'
 "1}}}
 " NOTE entry macros
 " tn, \tn - New note entry {{{1
